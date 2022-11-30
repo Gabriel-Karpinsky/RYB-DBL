@@ -23,7 +23,7 @@ The loop() function is an endless loop, in which the program will continue to ru
 
 void loop() {
   value = analogRead(pResistor);
-  delay(500);
+  delay(20);
   if(x==10){
     Clear_Screen();
     x = 0;
