@@ -1,41 +1,39 @@
 #include <Arduino.h>
 #include <M5stack.h>
-const int pResistor = 15;
+const int pResistor = 15; //photot resistor assignedto pin 15 
 
 float value;
-int x = 0;
-void Clear_Screen();
+float tempreading;
+int x = 0, y = 0;
+
+void Clear_Screen(); //forward declaration of clear screen
+
 void setup() {
   M5.begin(); //Init M5Core. Initialize M5Core
   M5.Power.begin(); //Init Power module. Initialize the power module
-                    /* Power chip connected to gpio21, gpio22, I2C device
-                      Set battery charging voltage and current
-                      If used battery, please call this function in your project */
-  //M5.Lcd.print("Hello World"); // Print text on the screen (string) Print text on the screen (string)
-  pinMode(pResistor, INPUT);
-  Serial.begin(115200);
-  //delay(5000);
+  pinMode(pResistor, INPUT); //Set pResistor as INPUT
+  Serial.begin(115200); //Serial setup for terminal monitoring
+  delay(5000);//start up delay experiment
 }
-/* After the program in setup() runs, it runs the program in loop()
-The loop() function is an infinite loop in which the program runs repeatedly
-After the program in the setup() function is executed, the program in the loop() function will be executed
-The loop() function is an endless loop, in which the program will continue to run repeatedly */
-
 void loop() {
-  value = analogRead(pResistor);
-  delay(20);
+  value = analogRead(pResistor);//Reads value of heartsensor and assigns it to float value
+  tempreading = tempreading + value; //Variable to average 10 reading to be desplayed as one 
+  delay(20); //sampling rate of 240BPM*2*5<--(for ekg patern)
   if(x==10){
-    Clear_Screen();
-    x = 0;
+    M5.Lcd.printf("%10.04f\n",tempreading/10);
+    x = 0;//reset counter 
+    tempreading = 0; //reset temp value
+    y++;//add to clear screen counter
   }else{
     x++;
   }
-  M5.Lcd.printf("%10.04f\n",value);
-  //M5.Lcd.fillScreen(BLACK);
-  //M5.Lcd.drawFloat(value,20,20,1);
- 
+
+  if(y==20){//clear screen every 20 prints
+    Clear_Screen();
+  }
 }
-void Clear_Screen(){
+
+void Clear_Screen(){//clear screen and set cursor back to start
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 0);
   M5.Lcd.println("");
