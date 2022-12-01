@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <M5stack.h>
-
+/*----------------------------------------------------------------
+Branch test
+----------------------------------------------------------------*/
 const int pResistor = 15; //photot resistor assignedto pin 15 
 
 float value, val_old = 0, val_new = 0, time_old = 0, time_new = 1;
