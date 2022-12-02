@@ -11,7 +11,8 @@ float freq = 0;
 float tempreading;
 float min_v = 5000, max_v = 0;
 
-int x = 0, y = 0;
+int x = 0, y = 0, x_pos = 0;
+int y_pos[320] = {239};
 
 void Clear_Screen(); //forward declaration of clear screen
 
@@ -81,7 +82,7 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
   
   if(y==20){//clear screen every 20 prints
     //Clear_Screen();
-    min_v = 5000;//reset work around accidental light exposure
+    min_v = 5000;//reset min and max value counter
     max_v = 0;
     y=0;
   }
