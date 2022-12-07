@@ -3,12 +3,12 @@
 
 const int pResistor = 15; //photot resistor assignedto pin 15 
 int counter;
-const int delayMs = 20;
+const int delayMs = 0.1;
 float val_old = 0, val_new = 0, time_old = 0, time_new = 1;
 float threshold = 1000;
 float period = 0;
-float freq = 0, temp_freq = 0, temp_old = 0, temp_new = 0;
-int int_freq = 0;
+float freq = 0, temp_freq = 0, temp_old = 0, temp_new = 0,avg_freq = 0, out_freq = 0;
+int int_freq = 0,int_out_freq = 0;
 float tempreading;
 float min_v = 5000, max_v = 0;
 
@@ -22,7 +22,7 @@ void setup() {
   M5.Power.begin(); //Init Power module. Initialize the power module
   pinMode(pResistor, INPUT); //Set pResistor as INPUT
   Serial.begin(115200); //Serial setup for terminal monitoring
-  delay(5000);//start up delay experiment
+  delay(1000);//start up delay experiment
   M5.Lcd.setTextSize(2);
 
   M5.Lcd.drawLine(0, 90, 320, 90, WHITE);
@@ -37,26 +37,34 @@ if(val_new >= threshold && val_old <= threshold){ // if value previously was bel
     time_new = millis();
 
     period = time_new - time_old; // calculates the period of the wave
-    temp_freq = 60/(period/1000); //frequency calculation
+    freq = 60/(period/1000);
+    avg_freq += freq;
     //Glitch detection
-    temp_old = temp_new; //temporarily variable storage
+     //temp_freq = temp_freq+60/(period/1000); //frequency calculation
+    /*temp_old = temp_new; //temporarily variable storage
     temp_new = temp_freq; //
     
     if(temp_old+20<temp_new || temp_old-20>temp_new){ //
-      temp_new = temp_old ;
-    }else if (counter == 3){
-      freq = temp_freq/counter;
-      temp_freq = 0;
+      temp_new = temp_old;
+      counter--;
+    }*/
+    if (counter == 3){
+      out_freq = avg_freq/counter;
+      //freq = temp_freq/counter;
+      //temp_freq = 0;
       counter = 0;
     }else{
       counter++;
     }  
+    int_freq = (int)freq;
+    int_out_freq = (int)out_freq;
     M5.Lcd.setCursor(0, 0);
     M5.Lcd.printf("FREQ = %06.2f\n", freq);
     M5.Lcd.printf("Period = %06.2f\n", period);
-    M5.Lcd.printf("int_FREQ = %04i\n", int_freq);
+    //M5.Lcd.printf("int_FREQ = %04i\n", int_freq);
+    M5.Lcd.printf("int_FREQ = %04i\n", int_out_freq);
     M5.Lcd.drawLine(x_pos, 91, x_pos, 109, WHITE);
-    int_freq = (int)freq;
+
 }
 
   /*value = analogRead(pResistor);//Reads value of heartsensor and assigns it to float value
@@ -113,8 +121,6 @@ if(val_new >= threshold && val_old <= threshold){ // if value previously was bel
   else if(val_new < threshold){
     M5.Lcd.drawPixel(x_pos, y_pos[x_pos], RED);
   }
-
-
   //~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>
 
   val_old = val_new;
