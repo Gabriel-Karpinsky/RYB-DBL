@@ -2,14 +2,13 @@
 #include <M5stack.h>
 
 const int pResistor = 15; //photot resistor assignedto pin 15 
-int x_pos = 0;
-int y_pos[320]={239};
 int counter;
 const int delayMs = 20;
 float val_old = 0, val_new = 0, time_old = 0, time_new = 1;
 float threshold = 1000;
 float period = 0;
 float freq = 0, temp_freq = 0, temp_old = 0, temp_new = 0;
+int int_freq = 0;
 float tempreading;
 float min_v = 5000, max_v = 0;
 
@@ -23,15 +22,20 @@ void setup() {
   M5.Power.begin(); //Init Power module. Initialize the power module
   pinMode(pResistor, INPUT); //Set pResistor as INPUT
   Serial.begin(115200); //Serial setup for terminal monitoring
-  M5.Lcd.setTextSize(2);
   delay(5000);//start up delay experiment
+  M5.Lcd.setTextSize(2);
+
+  M5.Lcd.drawLine(0, 90, 320, 90, WHITE);
 }
 void loop() {
 val_new = analogRead(pResistor); // reads value on pin
 
-if(val_new >= threshold && val_old <= threshold){ //added or condition
-    time_old = time_new; // register it as a peak of the wave
+M5.Lcd.drawLine(x_pos, 91, x_pos, 109, BLACK);
+
+if(val_new >= threshold && val_old <= threshold){ // if value previously was below threshold and now is over it
+    time_old = time_new;                          // register it as a peak of the wave
     time_new = millis();
+
     period = time_new - time_old; // calculates the period of the wave
     temp_freq = 60/(period/1000); //frequency calculation
     //Glitch detection
@@ -47,22 +51,32 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
     }else{
       counter++;
     }  
+    M5.Lcd.setCursor(0, 0);
+    M5.Lcd.printf("FREQ = %06.2f\n", freq);
+    M5.Lcd.printf("Period = %06.2f\n", period);
+    M5.Lcd.printf("int_FREQ = %04i\n", int_freq);
+    M5.Lcd.drawLine(x_pos, 91, x_pos, 109, WHITE);
+    int_freq = (int)freq;
 }
-  tempreading = tempreading + val_new; //Variable to average 10 reading to be desplayed as one 
-  
-  if(val_new<min_v){ 
-    min_v = val_new;
-  }else if(val_new>max_v){ 
-    max_v = val_new;
-  }
 
-  if(x==10){
-    M5.Lcd.printf("Current_v = %5.01f\n",tempreading/x);//???
+  /*value = analogRead(pResistor);//Reads value of heartsensor and assigns it to float value
+  
+  tempreading = tempreading + value; //Variable to average 10 reading to be desplayed as one 
+  
+  if(value<min_v){ 
+    min_v = value;
+  }
+  if(value>max_v){ 
+    max_v = value;
+  }*/
+
+  /*if(x==10){
+    //M5.Lcd.printf("Current_v = %10.1f\n",tempreading/20);//???
     M5.Lcd.printf("MAX = %09.4f\n", max_v);
     M5.Lcd.printf("MIN = %09.4f\n", min_v);
     M5.Lcd.printf("Y = %03i\n", y);
-    M5.Lcd.printf("FREQ = %08.4f\n", freq);
-    M5.Lcd.printf("Period = %06.2f\n", period);
+    M5.Lcd.printf("FREQ = %09.4f\n", freq);
+    M5.Lcd.printf("Period = %09.4f\n", period);
     M5.Lcd.setCursor(0, 0); 
     x = 0;//reset counter 
     tempreading = 0; //reset temp value
@@ -71,11 +85,18 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
     x++;
   }
 
+  if(y==20){//clear screen every 20 prints
+    //Clear_Screen();
+    min_v = 5000;//reset min and max value counter
+    max_v = 0;
+    y=0;
+  }*/
+
   //graphing functionality
   //~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>
-  if(x_pos == 320){
+  /*if(x_pos == 320){
     x_pos = 0;
-  }
+  }*/
 
   M5.Lcd.drawPixel(x_pos, y_pos[x_pos], BLACK);
 
@@ -92,16 +113,22 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
   else if(val_new < threshold){
     M5.Lcd.drawPixel(x_pos, y_pos[x_pos], RED);
   }
+
+
+  //~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>
+
+  val_old = val_new;
+
   x_pos++;
 
-  if(y==20){//clear screen every 20 prints
-    //Clear_Screen();
-    min_v = 5000;//reset min and max value counter
-    max_v = 0;
-    y=0;
+  if(x_pos == 320){
+    x_pos = 0;
   }
-  //val_old = analogRead(pResistor);
-  val_old = val_new;
   delay(delayMs); //sampling rate of 240BPM*2*5<--(for ekg patern)
 }
 
+/*void Clear_Screen(){//clear screen and set cursor back to start
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.println("");
+}*/
