@@ -4,10 +4,12 @@
 const int pResistor = 15; //photot resistor assignedto pin 15 
 int x_pos = 0;
 int y_pos[320]={239};
+int counter;
+const int delayMs = 20;
 float val_old = 0, val_new = 0, time_old = 0, time_new = 1;
 float threshold = 1000;
 float period = 0;
-float freq = 0;
+float freq = 0, temp_freq = 0, temp_old = 0, temp_new = 0;
 float tempreading;
 float min_v = 5000, max_v = 0;
 
@@ -31,7 +33,20 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
     time_old = time_new; // register it as a peak of the wave
     time_new = millis();
     period = time_new - time_old; // calculates the period of the wave
-    freq = 60/(period/1000); //frequency calculation
+    temp_freq = 60/(period/1000); //frequency calculation
+    //Glitch detection
+    temp_old = temp_new; //temporarily variable storage
+    temp_new = temp_freq; //
+    
+    if(temp_old+20<temp_new || temp_old-20>temp_new){ //
+      temp_new = temp_old ;
+    }else if (counter == 3){
+      freq = temp_freq/counter;
+      temp_freq = 0;
+      counter = 0;
+    }else{
+      counter++;
+    }  
 }
   tempreading = tempreading + val_new; //Variable to average 10 reading to be desplayed as one 
   
@@ -78,8 +93,7 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
     M5.Lcd.drawPixel(x_pos, y_pos[x_pos], RED);
   }
   x_pos++;
-  //~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>
-  
+
   if(y==20){//clear screen every 20 prints
     //Clear_Screen();
     min_v = 5000;//reset min and max value counter
@@ -88,11 +102,6 @@ if(val_new >= threshold && val_old <= threshold){ //added or condition
   }
   //val_old = analogRead(pResistor);
   val_old = val_new;
-  delay(20); //sampling rate of 240BPM*2*5<--(for ekg patern)
+  delay(delayMs); //sampling rate of 240BPM*2*5<--(for ekg patern)
 }
 
-/*void Clear_Screen(){//clear screen and set cursor back to start
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setCursor(0, 0);
-  M5.Lcd.println("");
-}*/
