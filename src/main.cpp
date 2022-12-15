@@ -2,12 +2,14 @@
 #include <M5stack.h>
 
 const int pResistor = 15; //photot resistor assignedto pin 15 
+const int size = 10;
 int counter;
-const int delayMs = 0.1;
+const int delayMs = 1;
 float val_old = 0, val_new = 0, time_old = 0, time_new = 1;
-float threshold = 1000;
+float threshold = 1200;
 float period = 0;
-float freq = 0, temp_freq = 0, temp_old = 0, temp_new = 0,avg_freq = 0, out_freq = 0;
+float freq = 0, old_freq = 0,avg_freq = 0, out_freq = 0;
+int freq_array[size] = {};
 int int_freq = 0,int_out_freq = 0;
 float tempreading;
 float min_v = 5000, max_v = 0;
@@ -24,7 +26,6 @@ void setup() {
   Serial.begin(115200); //Serial setup for terminal monitoring
   delay(1000);//start up delay experiment
   M5.Lcd.setTextSize(2);
-
   M5.Lcd.drawLine(0, 90, 320, 90, WHITE);
 }
 void loop() {
@@ -38,20 +39,23 @@ if(val_new >= threshold && val_old <= threshold){ // if value previously was bel
 
     period = time_new - time_old; // calculates the period of the wave
     freq = 60/(period/1000);
-    avg_freq += freq;
     //Glitch detection
-     //temp_freq = temp_freq+60/(period/1000); //frequency calculation
-    /*temp_old = temp_new; //temporarily variable storage
-    temp_new = temp_freq; //
+    freq_array[counter] = freq;
     
-    if(temp_old+20<temp_new || temp_old-20>temp_new){ //
-      temp_new = temp_old;
-      counter--;
+    /*if(freq_array[counter]+50<old_freq || freq_array[counter]-50>old_freq){ //
+      freq_array[counter] = 0;
+      if(counter>0){
+        counter--;
+      } 
     }*/
-    if (counter == 3){
+    old_freq =freq;
+    if (counter == size-1){
+      avg_freq = 0;
+      out_freq = 0;
+      for(int i=0; i<size-1;i++){
+        avg_freq += freq_array[i];
+      }
       out_freq = avg_freq/counter;
-      //freq = temp_freq/counter;
-      //temp_freq = 0;
       counter = 0;
     }else{
       counter++;
@@ -66,46 +70,6 @@ if(val_new >= threshold && val_old <= threshold){ // if value previously was bel
     M5.Lcd.drawLine(x_pos, 91, x_pos, 109, WHITE);
 
 }
-
-  /*value = analogRead(pResistor);//Reads value of heartsensor and assigns it to float value
-  
-  tempreading = tempreading + value; //Variable to average 10 reading to be desplayed as one 
-  
-  if(value<min_v){ 
-    min_v = value;
-  }
-  if(value>max_v){ 
-    max_v = value;
-  }*/
-
-  /*if(x==10){
-    //M5.Lcd.printf("Current_v = %10.1f\n",tempreading/20);//???
-    M5.Lcd.printf("MAX = %09.4f\n", max_v);
-    M5.Lcd.printf("MIN = %09.4f\n", min_v);
-    M5.Lcd.printf("Y = %03i\n", y);
-    M5.Lcd.printf("FREQ = %09.4f\n", freq);
-    M5.Lcd.printf("Period = %09.4f\n", period);
-    M5.Lcd.setCursor(0, 0); 
-    x = 0;//reset counter 
-    tempreading = 0; //reset temp value
-    y++;//add to clear screen counter
-  }else{
-    x++;
-  }
-
-  if(y==20){//clear screen every 20 prints
-    //Clear_Screen();
-    min_v = 5000;//reset min and max value counter
-    max_v = 0;
-    y=0;
-  }*/
-
-  //graphing functionality
-  //~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>~<>
-  /*if(x_pos == 320){
-    x_pos = 0;
-  }*/
-
   M5.Lcd.drawPixel(x_pos, y_pos[x_pos], BLACK);
 
   y_pos[x_pos] = 230 - (120 * (val_new / 4095));
@@ -132,7 +96,7 @@ if(val_new >= threshold && val_old <= threshold){ // if value previously was bel
   }
   delay(delayMs); //sampling rate of 240BPM*2*5<--(for ekg patern)
 }
-
+//<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 /*void Clear_Screen(){//clear screen and set cursor back to start
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 0);
